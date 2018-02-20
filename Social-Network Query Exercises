@@ -68,7 +68,6 @@ where H1.ID = Likes.ID1 and Likes.ID2 = H2.ID and
 
 Q8. Find the difference between the number of students in the school and the number of different first names. 
 
-
 SELECT COUNT(*)-COUNT(DISTINCT name) as DIFF
 FROM Highschooler
 
