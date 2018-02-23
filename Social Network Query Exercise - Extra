@@ -1,0 +1,59 @@
+Q1. For every situation where student A likes student B, but student B likes a different student C, return the names and grades of A, B, and C. 
+
+SELECT H1.name, H1.grade, H2.name, H2.grade, H3.name, H3.grade
+FROM Highschooler H1, Highschooler H2, Highschooler H3, Likes L1, Likes L2
+WHERE H1.ID = L1.ID1 and H2.ID = L1.ID2 and H2.ID = L2.ID1 
+and H1.ID not in (SELECT ID2 FROM Likes Where ID1=H2.ID) and H3.ID = L2.ID2
+
+Q2. Find those students for whom all of their friends are in different grades from themselves. Return the students' names and grades
+
+SELECT DISTINCT H1.name, H1.grade
+FROM Friend
+JOIN Highschooler H1 ON H1.ID = Friend.ID1
+JOIN Highschooler H2 ON H2.ID = Friend.ID2
+WHERE H1.Grade!=H2.Grade and H1.ID not in
+(SELECT FF.ID1 from Friend FF, Highschooler H11, Highschooler H22
+Where FF.ID1 = H11.ID and FF.ID2 = H22.ID and H11.Grade = H22.Grade)
+
+Q3. What is the average number of friends per student? (Your result should be just one number.)  
+
+SELECT AVG(NUM) as AVG_NUM
+FROM(
+
+SELECT ID1, COUNT(*) as NUM
+FROM Friend
+GROUP BY ID1
+)
+
+Q4.Find the number of students who are either friends with Cassandra or are friends of friends of Cassandra. Do not count Cassandra, even though technically she is a friend of a friend. 
+
+SELECT COUNT(*) FROM
+(SELECT ID2 FROM Friend
+WHERE ID1 = (SELECT ID FROM Highschooler WHERE name = "Cassandra")
+UNION
+SELECT F1.ID1
+FROM Friend F1, Friend F2
+WHERE F1.ID2!=(SELECT ID FROM Highschooler 
+WHERE name = "Cassandra")
+AND F1.ID2 = F2.ID1 and F1.ID1!=(SELECT ID FROM Highschooler 
+WHERE name = "Cassandra")
+AND F2.ID2 =(SELECT ID FROM Highschooler 
+WHERE name = "Cassandra")) as A
+
+-Solution 2
+SELECT COUNT(id1)
+FROM Friend
+WHERE Id2 in(
+SELECT id1 FROM Friend
+WHERE id2 = (SELECT id from highschooler where name = "Cassandra"))
+and id2!= (SELECT id from highschooler where name = "Cassandra")
+
+Q5. 
+SELECt distinct  name, grade
+FROM Highschooler, Friend, (SELECT id1, count(*) as num from friend group by id1 ) as A
+WHERE Highschooler.ID = Friend.ID1 and Highschooler.ID = A.id1 and num = (select max(num) from (SELECT id1, count(*) as num from friend group by id1 ) )
+
+select h.name, h.grade from highschooler h, friend f where
+h.id = f.id1 group by f.id1 having count(f.id2) = (
+select max(r.c) from
+(select count(id2) as c from friend group by id1) as r)
